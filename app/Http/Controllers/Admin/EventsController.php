@@ -10,106 +10,108 @@ use Illuminate\Support\Facades\Validator;
 
 class EventsController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function index()
-    {
-        return $this->success(Event::paginate(10));
+  /**
+   * Display a listing of the resource.
+   *
+   * @return \Illuminate\Http\Response
+   */
+  public function index()
+  {
+    return $this->success(Event::paginate(5));
+  }
+
+  /**
+   * Store a newly created resource in storage.
+   *
+   * @param  \Illuminate\Http\Request  $request
+   * @return \Illuminate\Http\Response
+   */
+  public function store(Request $request)
+  {
+    $validator = Validator::make($request->all(), [
+      'name' => 'required|string',
+      'length' => 'required|integer|min:1',
+      'maximum_allowed' => 'required|integer|min:1',
+      'booking_start' => 'required|date',
+      'booking_end' => 'required|date',
+      'timing_start' => 'required|date_format:H:i',
+      'timing_end' => 'required|date_format:H:i',
+      'inactive_start' => 'required|date_format:H:i',
+      'inactive_end' => 'required|date_format:H:i',
+      'active_days' => 'string',
+    ]);
+
+    if ($validator->fails()) {
+      return $this->fail($validator->errors());
     }
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function store(Request $request)
-    {
-        $validator = Validator::make($request->all(), [
-            'name' => 'required|string',
-            'length' => 'required|integer|min:1',
-            'maximum_allowed' => 'required|integer|min:1',
-            'booking_start' => 'required|date',
-            'booking_end' => 'required|date',
-            'timing_start' => 'required|date_format:H:i',
-            'timing_end' => 'required|date_format:H:i',
-            'inactive_start' => 'required|date_format:H:i',
-            'inactive_end' => 'required|date_format:H:i',
-            'active_days' => 'string',
-        ]);
+    $event = new Event($validator->validated());
 
-        if ($validator->fails()) {
-            return $this->fail($validator->errors());
-        }
+    $event->user_id = auth()->user()->id;
 
-        $event = new Event($validator->validated());
+    $event->booking_start = Carbon::parse($event->booking_start);
+    $event->booking_end = Carbon::parse($event->booking_end);
 
-        $event->user_id = auth()->user()->id;
+    $event->save();
 
-        $event->booking_start = Carbon::parse($event->booking_start);
-        $event->booking_end = Carbon::parse($event->booking_end);
+    return $this->success($event);
+  }
 
-        $event->save();
-
-        return $this->success($event);
+  /**
+   * Display the specified resource.
+   *
+   * @param  Event  $event
+   * @return \Illuminate\Http\Response
+   */
+  public function show(Event $event)
+  {
+    if (request()->has("full")) {
+      return $this->success($event->append("slots"));
     }
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  Event  $event
-     * @return \Illuminate\Http\Response
-     */
-    public function show(Event $event)
-    {
-        if (request()->has("full")) {
-            return $this->success($event->append("slots"));
-        }
+    return $this->success($event->append("cached_booked_slots"));
+  }
 
-        return $this->success($event->append("cached_booked_slots"));
+  /**
+   * Update the specified resource in storage.
+   *
+   * @param  \Illuminate\Http\Request  $request
+   * @param  Event  $event
+   * @return \Illuminate\Http\Response
+   */
+  public function update(Request $request, Event $event)
+  {
+    $validator = Validator::make($request->all(), [
+      'name' => 'string',
+      'length' => 'integer|min:1',
+      'maximum_allowed' => 'integer|min:1',
+      'booking_start' => 'date',
+      'booking_end' => 'date',
+      'timing_start' => 'date_format:H:i',
+      'timing_end' => 'date_format:H:i',
+      'inactive_start' => 'date_format:H:i',
+      'inactive_end' => 'date_format:H:i',
+      'active_days' => 'string',
+    ]);
+
+    if ($validator->fails()) {
+      return $this->fail($validator->errors());
     }
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  Event  $event
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, Event $event)
-    {
-        $validator = Validator::make($request->all(), [
-            'name' => 'string',
-            'length' => 'integer|min:1',
-            'maximum_allowed' => 'integer|min:1',
-            'booking_start' => 'date',
-            'booking_end' => 'date',
-            'timing_start' => 'date_format:H:i',
-            'timing_end' => 'date_format:H:i',
-        ]);
+    $event->update($validator->validated());
 
-        if ($validator->fails()) {
-            return $this->fail($validator->errors());
-        }
+    return $this->success($event, "Event was updated.");
+  }
 
-        $event->update($validator->validated());
-
-        return $this->success($event, "Event was updated.");
-
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  Event  $event
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy(Event $event)
-    {
-        $event->delete();
-        return $this->success($event, "Event was deleted.");
-    }
+  /**
+   * Remove the specified resource from storage.
+   *
+   * @param  Event  $event
+   * @return \Illuminate\Http\Response
+   */
+  public function destroy(Event $event)
+  {
+    $event->delete();
+    return $this->success($event, "Event was deleted.");
+  }
 }
