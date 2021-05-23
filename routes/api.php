@@ -18,14 +18,14 @@ use Illuminate\Support\Facades\Route;
 |
  */
 
-Route::middleware('auth:api')->get('/user', function (Request $request) {
+Route::middleware('auth')->get('/user', function (Request $request) {
     return $request->user();
 });
 
 Route::post("/register", RegisterController::class);
-Route::post("/login", LoginController::class);
+Route::post("/login", LoginController::class)->name("login");
 
-Route::group(["middleware" => "api"], function () {
-    Route::resource(EventsController::class);
-    Route::resource(AppointmentsController::class);
+Route::group(["middleware" => "jwt", "prefix" => "/admin"], function () {
+    Route::resource("/events", EventsController::class);
+    Route::resource("/appointments", AppointmentsController::class);
 });
