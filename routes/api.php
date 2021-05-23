@@ -1,7 +1,7 @@
 <?php
 
-use App\Http\Controllers\Admin\AppointmentsController;
 use App\Http\Controllers\Admin\EventsController;
+use App\Http\Controllers\AppointmentsController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use Illuminate\Http\Request;
@@ -22,10 +22,12 @@ Route::middleware('auth')->get('/user', function (Request $request) {
     return $request->user();
 });
 
+// Admin Routes
 Route::post("/register", RegisterController::class);
 Route::post("/login", LoginController::class)->name("login");
+Route::resource("/admin/events", EventsController::class)->middleware("jwt");
 
-Route::group(["middleware" => "jwt", "prefix" => "/admin"], function () {
-    Route::resource("/events", EventsController::class);
-    Route::resource("/appointments", AppointmentsController::class);
-});
+// Customer Routes
+Route::get('/events', [EventsController::class, 'index']);
+Route::get('/events/{event}', [EventsController::class, 'show']);
+Route::resource("/event/{event}/appointments", AppointmentsController::class);

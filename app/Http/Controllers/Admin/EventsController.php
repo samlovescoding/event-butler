@@ -17,7 +17,7 @@ class EventsController extends Controller
      */
     public function index()
     {
-        return Event::paginate(10);
+        return $this->success(Event::paginate(10));
     }
 
     /**
@@ -62,7 +62,7 @@ class EventsController extends Controller
      */
     public function show(Event $event)
     {
-        $this->success($event);
+        return $this->success($event->append("slots"));
     }
 
     /**

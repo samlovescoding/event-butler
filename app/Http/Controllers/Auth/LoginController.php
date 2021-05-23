@@ -22,7 +22,7 @@ class LoginController extends Controller
         $validated = $validator->validated();
 
         if (!$token = Auth::attempt($validated)) {
-            return $this->fail(new \Error("Unauthorized"), 401);
+            return $this->fail("Invalid email/password combination", 401);
         }
 
         return $this->success(compact("token"), "User is authenticated.");
