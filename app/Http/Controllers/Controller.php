@@ -11,7 +11,7 @@ class Controller extends BaseController
 {
     use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
 
-    public function success($data, $message = null, $code = 400)
+    public function success($data, $message = null, $code = 200)
     {
         if ($message == null) {
             $response = compact("data");
