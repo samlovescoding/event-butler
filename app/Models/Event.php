@@ -31,7 +31,7 @@ class Event extends Model
                 }
             }
             $slotName = implode(":", $timingCurrent);
-            $slots[$slotName] = $this->maximum_allowed;
+            $slots[$slotName] = 0;
 
             // Normalize the timestamps
             $timingCurrent[1] = $timingCurrent[1] + $this->length;
@@ -50,14 +50,32 @@ class Event extends Model
         return $slots;
     }
 
+    public function getBookedSlotsAttribute()
+    {
+        return collect($this->getSlotsAttribute())->map(function ($day) {
+            return collect($day)->filter(function ($slot) {
+                return $slot != 0;
+            });
+        });
+    }
+
     public function getSlotsAttribute()
     {
+        $activeDays = explode(",", $this->active_days);
         $bookingStart = Carbon::parse($this->booking_start);
         $bookingEnd = Carbon::parse($this->booking_end);
         $bookingCurrent = $bookingStart;
         $emptyTimeSlots = $this->getTimeSlots();
         $days = [];
         while ($bookingCurrent <= $bookingEnd) {
+
+            // Only the active days
+            if (!in_array($bookingCurrent->dayOfWeekIso, $activeDays)) {
+                $bookingCurrent->addDay();
+                continue;
+            }
+
+
             $days[$bookingCurrent->format("Y-m-d")] = $emptyTimeSlots;
             $bookingCurrent->addDay();
         }
@@ -66,7 +84,7 @@ class Event extends Model
         foreach ($appointments as $appointment) {
             // For all appointments subtract 1 from the slots
             $appointmentTime = explode(" ", $appointment->slot_time);
-            $days[$appointmentTime[0]][$appointmentTime[1]] -= 1;
+            $days[$appointmentTime[0]][$appointmentTime[1]] += 1;
         }
 
         return $days;

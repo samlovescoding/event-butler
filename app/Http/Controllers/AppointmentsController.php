@@ -32,8 +32,8 @@ class AppointmentsController extends Controller
         $validator = Validator::make($request->all(),
             [
                 'email' => 'required|email',
-                'first_name' => 'required',
-                'last_name' => 'required',
+                'first_name' => 'required|min:2',
+                'last_name' => 'required|min:2',
                 'slot_time' => 'required|date',
             ]
         );

@@ -31,6 +31,11 @@ class CreateEventsTable extends Migration
             $table->time("timing_start");
             $table->time("timing_end");
 
+            $table->string("active_days")->default('1,2,3,4,5'); // Event can be booked only for these days
+
+            $table->time("inactive_start");
+            $table->time("inactive_end");
+
             // User ID
             $table->bigInteger("user_id");
 

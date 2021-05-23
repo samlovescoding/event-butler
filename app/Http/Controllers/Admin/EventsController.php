@@ -36,6 +36,7 @@ class EventsController extends Controller
             'booking_end' => 'required|date',
             'timing_start' => 'required|date_format:H:i',
             'timing_end' => 'required|date_format:H:i',
+            'active_days' => 'string',
         ]);
 
         if ($validator->fails()) {
@@ -62,7 +63,7 @@ class EventsController extends Controller
      */
     public function show(Event $event)
     {
-        return $this->success($event->append("slots"));
+        return $this->success($event->append("booked_slots"));
     }
 
     /**
