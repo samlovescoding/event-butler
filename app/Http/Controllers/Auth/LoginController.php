@@ -21,18 +21,6 @@ class LoginController extends Controller
 
         $validated = $validator->validated();
 
-        // $user = User::where("email", $validated["email"]);
-
-        // if ($user == null) {
-        //     return $this->fail(new \Error("Email does not exist."), 401);
-        // }
-
-        // $passwordVerified = Hash::check($validated["password"], $user->password);
-
-        // if (!$passwordVerified) {
-        //     return $this->fail(new \Error("Password is incorrect"), 401);
-        // }
-
         if (!$token = Auth::attempt($validated)) {
             return $this->fail(new \Error("Unauthorized"), 401);
         }

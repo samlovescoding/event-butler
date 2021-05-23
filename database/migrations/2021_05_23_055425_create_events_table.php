@@ -23,9 +23,9 @@ class CreateEventsTable extends Migration
             // Maximum appointments per slot
             $table->integer("maximum_allowed");
 
-            // Booking start date
-            $table->time("booking_start");
-            $table->time("booking_end");
+            // Booking Days
+            $table->date("booking_start");
+            $table->date("booking_end");
 
             // Booking Day Timings
             $table->time("timing_start");
