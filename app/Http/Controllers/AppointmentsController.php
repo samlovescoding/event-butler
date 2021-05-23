@@ -16,7 +16,7 @@ class AppointmentsController extends Controller
      */
     public function index(Event $event)
     {
-        $appointments = $event->appointments()->get();
+        $appointments = $event->appointments()->get()->append(["date", "time"]);
 
         return $this->success($appointments);
     }
@@ -70,18 +70,6 @@ class AppointmentsController extends Controller
     public function show(Appointment $appointment)
     {
         return $appointment;
-    }
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, Appointment $appointment)
-    {
-        //
     }
 
     /**

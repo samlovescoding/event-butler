@@ -33,6 +33,7 @@ class Event extends Model
             $slotName = implode(":", $timingCurrent);
             $slots[$slotName] = $this->maximum_allowed;
 
+            // Normalize the timestamps
             $timingCurrent[1] = $timingCurrent[1] + $this->length;
             if ($timingCurrent[1] >= 60) {
                 $timingCurrent[0]++;
