@@ -5,12 +5,21 @@ namespace App\Models;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Cache;
 
 class Event extends Model
 {
     use HasFactory;
     protected $guarded = [];
-
+    public function cacheKey()
+    {
+        return sprintf(
+            "%s:%s:%s",
+            $this->getTable(),
+            $this->getKey(),
+            $this->updated_at->timestamp
+        );
+    }
     public function appointments()
     {
         return $this->hasMany(Appointment::class, 'event_id');
@@ -22,6 +31,9 @@ class Event extends Model
         $timingEnd = explode(":", $this->timing_end);
         $timingCurrent = $timingStart;
 
+        $inactiveStart = explode(":", $this->inactive_start);
+        $inactiveEnd = explode(":", $this->inactive_end);
+
         $slots = [];
 
         while ($timingCurrent[0] <= $timingEnd[0]) {
@@ -31,6 +43,28 @@ class Event extends Model
                 }
             }
             $slotName = implode(":", $timingCurrent);
+            if ($timingCurrent[0] >= $inactiveStart[0]) {
+                if ($timingCurrent[1] >= $inactiveStart[1]) {
+                    if ($timingCurrent[0] <= $inactiveEnd[0]) {
+                        if ($slotName < $this->inactive_end) {
+                            // Normalize the timestamps
+                            $timingCurrent[1] = $timingCurrent[1] + $this->length;
+                            if ($timingCurrent[1] >= 60) {
+                                $timingCurrent[0]++;
+                                $timingCurrent[1] -= 60;
+                            }
+                            if ($timingCurrent[0] < 10) {
+                                $timingCurrent[0] = "0" . intval($timingCurrent[0]);
+                            }
+                            if ($timingCurrent[1] < 10) {
+                                $timingCurrent[1] = "0" . intval($timingCurrent[1]);
+                            }
+                            continue;
+                        }
+                    }
+                }
+            }
+
             $slots[$slotName] = 0;
 
             // Normalize the timestamps
@@ -59,6 +93,13 @@ class Event extends Model
         });
     }
 
+    public function getCachedBookedSlotsAttribute()
+    {
+        return Cache::remember($this->cacheKey() . ":slots", 60, function () {
+            return $this->getBookedSlotsAttribute();
+        });
+    }
+
     public function getSlotsAttribute()
     {
         $activeDays = explode(",", $this->active_days);
@@ -74,7 +115,6 @@ class Event extends Model
                 $bookingCurrent->addDay();
                 continue;
             }
-
 
             $days[$bookingCurrent->format("Y-m-d")] = $emptyTimeSlots;
             $bookingCurrent->addDay();

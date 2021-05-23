@@ -36,6 +36,8 @@ class EventsController extends Controller
             'booking_end' => 'required|date',
             'timing_start' => 'required|date_format:H:i',
             'timing_end' => 'required|date_format:H:i',
+            'inactive_start' => 'required|date_format:H:i',
+            'inactive_end' => 'required|date_format:H:i',
             'active_days' => 'string',
         ]);
 
@@ -63,7 +65,11 @@ class EventsController extends Controller
      */
     public function show(Event $event)
     {
-        return $this->success($event->append("booked_slots"));
+        if (request()->has("full")) {
+            return $this->success($event->append("slots"));
+        }
+
+        return $this->success($event->append("cached_booked_slots"));
     }
 
     /**
