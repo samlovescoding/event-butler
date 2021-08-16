@@ -19,15 +19,17 @@ use Illuminate\Support\Facades\Route;
  */
 
 Route::middleware('auth')->get('/user', function (Request $request) {
-    return $request->user();
+  return $request->user();
 });
 
 // Admin Routes
 Route::post("/register", RegisterController::class);
 Route::post("/login", LoginController::class)->name("login");
+
 Route::resource("/admin/events", EventsController::class)->middleware("jwt");
 
 // Customer Routes
 Route::get('/events', [EventsController::class, 'index']);
 Route::get('/events/{event}', [EventsController::class, 'show']);
+
 Route::resource("/event/{event}/appointments", AppointmentsController::class);

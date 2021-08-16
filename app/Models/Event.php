@@ -26,7 +26,7 @@ class Event extends Model
     return $this->hasMany(Appointment::class, 'event_id');
   }
 
-  public function getTimeSlots()
+  public function getTimeSlotsOld()
   {
     $timingStart = explode(":", $this->timing_start);
     $timingEnd = explode(":", $this->timing_end);
@@ -80,6 +80,27 @@ class Event extends Model
       if ($timingCurrent[1] < 10) {
         $timingCurrent[1] = "0" . intval($timingCurrent[1]);
       }
+    }
+    return $slots;
+  }
+
+  public function getTimeSlots()
+  {
+    $slots = [];
+    $timingStart = Carbon::parse($this->timing_start);
+    $timingEnd = Carbon::parse($this->timing_end);
+    $timingCurrent = $timingStart;
+    $inactiveStart = Carbon::parse($this->inactive_start);
+    $inactiveEnd = Carbon::parse($this->inactive_end);
+
+    while ($timingCurrent->lt($timingEnd)) {
+      if ($timingCurrent->between($inactiveStart, $inactiveEnd, true)) {
+        $timingCurrent->addMinutes($this->length);
+        continue;
+      }
+
+      $slots[$timingCurrent->toTimeString()] = 0;
+      $timingCurrent->addMinutes($this->length);
     }
 
     return $slots;
